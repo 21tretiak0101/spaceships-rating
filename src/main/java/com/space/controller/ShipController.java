@@ -1,0 +1,215 @@
+package com.space.controller;
+
+import com.space.exception.InvalidShipFieldsException;
+import com.space.exception.InvalidShipIdException;
+import com.space.exception.ShipExistException;
+import com.space.model.Ship;
+import com.space.model.ShipType;
+import com.space.service.ShipService;
+import com.space.service.validator.NullValidator;
+import com.space.service.validator.ShipIdValidator;
+import com.space.service.validator.ShipValidator;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.space.exception.InvalidShipFieldsException.message;
+import static com.space.model.ShipSpecification.*;
+import static org.springframework.data.jpa.domain.Specification.where;
+
+@RestController
+@RequestMapping("/rest")
+public class ShipController {
+
+    private static final String NOT_FOUND_BY_ID_MESSAGE =
+            "Ship doesn't exist with ID: ";
+
+    private static final String INVALID_ID_MESSAGE =
+            "Invalid ship ID: ";
+
+    private static Logger log = Logger.getLogger(ShipController.class);
+
+    private ShipService shipService;
+
+    private ShipValidator shipValidator;
+
+    private NullValidator nullValidator;
+
+    private ShipIdValidator shipIdValidator;
+
+    @Autowired
+    public ShipController(ShipService shipService, ShipValidator shipValidator,
+                          NullValidator nullValidator, ShipIdValidator shipIdValidator,
+                          ShipIdValidator shipExistValidator) {
+        this.shipService = shipService;
+        this.shipValidator = shipValidator;
+        this.nullValidator = nullValidator;
+        this.shipIdValidator = shipIdValidator;
+        this.shipIdValidator = shipExistValidator;
+    }
+
+    @GetMapping("/ships")
+    public ResponseEntity<List<Ship>> getShips (
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "planet", required = false) String planet,
+            @RequestParam(name = "shipType", required = false) ShipType shipType,
+            @RequestParam(name = "after", required = false) Long after,
+            @RequestParam(name = "before", required = false) Long before,
+            @RequestParam(name = "isUsed", required = false) Boolean isUsed,
+            @RequestParam(name = "minSpeed", required = false) Double minSpeed,
+            @RequestParam(name = "maxSpeed", required = false) Double maxSpeed,
+            @RequestParam(name = "minCrewSize", required = false) Integer minCrewSize,
+            @RequestParam(name = "maxCrewSize", required = false ) Integer maxCrewSize,
+            @RequestParam(name = "minRating", required = false) Double minRating,
+            @RequestParam(name = "maxRating", required = false) Double maxRating,
+            @RequestParam(name = "order", required = false, defaultValue = "ID") ShipOrder order,
+            @RequestParam(name = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "3") Integer pageSize ) {
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()));
+
+        Page<Ship> ships = shipService.findAll(
+                where(
+                        shipsLikeName(name)
+                                .and(shipsLikePlanet(planet))
+                                .and(shipsEqualShipType(shipType))
+                                .and(shipsGreaterThanOrEqualToDate(after))
+                                .and(shipsLessThanOrEqualToDate(before))
+                                .and(shipsEqualUsed(isUsed))
+                                .and(shipsGreaterThanOrEqualToSpeed(minSpeed))
+                                .and(shipsLessThanOrEqualToSpeed(maxSpeed))
+                                .and(shipsGreaterThanOrEqualToCrewSize(minCrewSize))
+                                .and(shipsLessThanOrEqualToCrewSize(maxCrewSize))
+                                .and(shipsGreaterThanOrEqualToRating(minRating))
+                                .and(shipsLessThanOrEqualToRating(maxRating))
+                ),
+                pageable);
+
+        return new ResponseEntity<>(ships.getContent(), HttpStatus.OK);
+    }
+
+    @GetMapping("/ships/count")
+    public Long getShipsCount(
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "planet", required = false) String planet,
+            @RequestParam(name = "shipType", required = false) ShipType shipType,
+            @RequestParam(name = "after", required = false) Long after,
+            @RequestParam(name = "before", required = false) Long before,
+            @RequestParam(name = "isUsed", required = false) Boolean isUsed,
+            @RequestParam(name = "minSpeed", required = false) Double minSpeed,
+            @RequestParam(name = "maxSpeed", required = false) Double maxSpeed,
+            @RequestParam(name = "minCrewSize", required = false) Integer minCrewSize,
+            @RequestParam(name = "maxCrewSize", required = false ) Integer maxCrewSize,
+            @RequestParam(name = "minRating", required = false) Double minRating,
+            @RequestParam(name = "maxRating", required = false) Double maxRating) {
+
+        Specification<Ship> shipSpecification = where(
+                shipsLikeName(name)
+                        .and(shipsLikePlanet(planet))
+                        .and(shipsEqualShipType(shipType))
+                        .and(shipsGreaterThanOrEqualToDate(after))
+                        .and(shipsLessThanOrEqualToDate(before))
+                        .and(shipsEqualUsed(isUsed))
+                        .and(shipsGreaterThanOrEqualToSpeed(minSpeed))
+                        .and(shipsLessThanOrEqualToSpeed(maxSpeed))
+                        .and(shipsGreaterThanOrEqualToCrewSize(minCrewSize))
+                        .and(shipsLessThanOrEqualToCrewSize(maxCrewSize))
+                        .and(shipsGreaterThanOrEqualToRating(minRating))
+                        .and(shipsLessThanOrEqualToRating(maxRating))
+        );
+
+        return shipService.getShipsCount(shipSpecification);
+    }
+
+
+    @GetMapping("/ships/{id}")
+    public ResponseEntity<Ship> getShip(
+            @PathVariable Long id) {
+
+        if (shipIdValidator.nonValid(id))
+            throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
+
+        Optional<Ship> ship = shipService.getShipById(id);
+
+        if (!ship.isPresent())
+            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
+
+        return new ResponseEntity<>(ship.get(), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/ships")
+    public ResponseEntity<Ship> saveShip(@RequestBody Ship shipBody, BindingResult bindingResult) {
+
+        shipValidator.validate(shipBody, bindingResult);
+        nullValidator.validate(shipBody, bindingResult);
+
+        if (bindingResult.hasErrors())
+            throw new InvalidShipFieldsException(message(bindingResult));
+
+        Ship ship = shipService.saveShip(shipBody);
+
+        return new ResponseEntity<>(ship, HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @DeleteMapping("/ships/{id}")
+    public void deleteShip(@PathVariable  Long id) {
+
+        if (shipIdValidator.nonValid(id))
+            throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
+
+        if (shipIdValidator.nonExists(id))
+            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
+
+        shipService.deleteShip(id);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/ships/{id}")
+    public ResponseEntity<Ship> updateShip(
+            @PathVariable Long id,
+            @RequestBody Ship shipBody, BindingResult bindingResult) {
+
+        if (shipIdValidator.nonValid(id))
+            throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
+
+        shipValidator.validate(shipBody, bindingResult);
+
+        if (bindingResult.hasErrors())
+            throw new InvalidShipFieldsException(message(bindingResult));
+
+        Optional<Ship> ship = shipService.updateShip(id, shipBody);
+
+        if (!ship.isPresent())
+            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
+
+        return new ResponseEntity<>(ship.get(), HttpStatus.OK);
+    }
+
+    @ExceptionHandler({InvalidShipIdException.class, InvalidShipFieldsException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> badRequest (Exception e) {
+        return Map.of("message", e.getMessage(),
+                "error", e.getClass().getSimpleName());
+    }
+
+    @ExceptionHandler(ShipExistException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> notFound (Exception e) {
+        return Map.of("message", e.getMessage(),
+                "error", e.getClass().getSimpleName());
+    }
+}
