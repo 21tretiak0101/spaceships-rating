@@ -33,15 +33,15 @@ public class ShipSpecification {
     public static Specification<Ship> shipsLessThanOrEqualToDate(Long date) {
         return (Specification<Ship>) (root, criteriaQuery, criteriaBuilder) -> {
             if (isNull(date)) return criteriaBuilder.conjunction();
-                return criteriaBuilder.lessThanOrEqualTo(root.get("prodDate"), new Date(date));
+            return criteriaBuilder.lessThanOrEqualTo(root.get("prodDate"), new Date(date));
 
         };
     }
 
     public static Specification<Ship> shipsGreaterThanOrEqualToDate(Long date) {
         return (Specification<Ship>) (root, criteriaQuery, criteriaBuilder) -> {
-        if (isNull(date)) return criteriaBuilder.conjunction();
-                return criteriaBuilder.greaterThanOrEqualTo(root.get("prodDate"), new Date(date));
+            if (isNull(date)) return criteriaBuilder.conjunction();
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("prodDate"), new Date(date));
 
         };
     }
@@ -63,7 +63,7 @@ public class ShipSpecification {
     public static Specification<Ship> shipsGreaterThanOrEqualToSpeed(Double speed) {
         return (Specification<Ship>) (root, criteriaQuery, criteriaBuilder) -> {
             if (isNull(speed)) return criteriaBuilder.conjunction();
-           return criteriaBuilder.greaterThanOrEqualTo(root.get("speed"), speed);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("speed"), speed);
         };
     }
 
