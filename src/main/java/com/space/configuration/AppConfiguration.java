@@ -1,4 +1,4 @@
-package com.space.config;
+package com.space.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Properties;
 
 import static org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType.H2;
@@ -27,19 +25,19 @@ import static org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType.
 @EnableTransactionManagement
 @ComponentScan("com.space")
 @EnableJpaRepositories(basePackages = "com.space.repository")
-public class AppConfig {
+public class AppConfiguration {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(dataSource());
-        em.setPackagesToScan("com.space.model");
+        LocalContainerEntityManagerFactoryBean manager = new LocalContainerEntityManagerFactoryBean();
+        manager.setDataSource(dataSource());
+        manager.setPackagesToScan("com.space.model");
 
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(additionalProperties());
+        manager.setJpaVendorAdapter(vendorAdapter);
+        manager.setJpaProperties(additionalProperties());
 
-        return em;
+        return manager;
     }
 
     @Profile("prod")

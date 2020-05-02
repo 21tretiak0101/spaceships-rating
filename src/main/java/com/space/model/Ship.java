@@ -1,5 +1,7 @@
 package com.space.model;
 
+import com.space.service.validator.ShipValidator;
+
 import javax.persistence.*;
 import java.util.Calendar;
 import java.util.Date;
@@ -42,8 +44,7 @@ public class Ship {
     private Double rating;
 
 
-    public Ship() {
-    }
+    public Ship() { }
 
     public Long getId() {
         return id;
@@ -133,46 +134,51 @@ public class Ship {
     }
 
     public void calculateRating() {
-        final int CURRENT_YEAR = 3019;
+        int currentYear = ShipValidator.MAX_PROD_YEAR;
 
-        Calendar shipProdTime = Calendar.getInstance();
-        shipProdTime.setTime(prodDate);
+        Calendar prodDate = Calendar.getInstance();
+        prodDate.setTime(this.prodDate);
 
+        double newRating = (80 * speed * (isUsed ? 0.5 : 1))
+                / (currentYear - prodDate.get(Calendar.YEAR) + 1);
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(prodDate);
-
-        final double newRating = (80 * speed * (isUsed ? 0.5 : 1))
-                / (CURRENT_YEAR - calendar.get(Calendar.YEAR) + 1);
-
-        this.setRating((Math.round(newRating * 100.0) / 100.0));
+        setRating((Math.round(newRating * 100.0) / 100.0));
     }
 
-    public void updateFields(Ship newShip) {
+    public void update(Ship newShip) {
 
-        if (hasText(newShip.name))
+        if (hasText(newShip.name)) {
             name = newShip.name;
+        }
 
-        if (hasText(newShip.planet))
+        if (hasText(newShip.planet)) {
             planet = newShip.planet;
+        }
 
-        if (nonNull(newShip.shipType))
+        if (nonNull(newShip.shipType)) {
             shipType = newShip.shipType;
+        }
 
-        if (nonNull(newShip.prodDate))
+        if (nonNull(newShip.prodDate)) {
             prodDate = newShip.prodDate;
+        }
 
-        if (nonNull(newShip.isUsed))
+        if (nonNull(newShip.isUsed)) {
             isUsed = newShip.isUsed;
+        }
 
-        if (nonNull(newShip.speed))
+        if (nonNull(newShip.speed)) {
             speed = newShip.speed;
+        }
 
-        if (nonNull(newShip.crewSize))
+        if (nonNull(newShip.crewSize)) {
             crewSize = newShip.crewSize;
+        }
     }
 
-    public void setDefaultUsed(){
-        if (isNull(isUsed)) isUsed = false;
+    public void setDefaultUsed() {
+        if (isNull(isUsed)) {
+            isUsed = false;
+        }
     }
 }

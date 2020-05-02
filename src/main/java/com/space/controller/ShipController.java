@@ -1,9 +1,10 @@
 package com.space.controller;
 
-import com.space.exception.InvalidShipFieldsException;
+import com.space.exception.InvalidShipFieldException;
 import com.space.exception.InvalidShipIdException;
 import com.space.exception.ShipExistException;
 import com.space.model.Ship;
+import com.space.model.ShipOrder;
 import com.space.model.ShipType;
 import com.space.service.ShipService;
 import com.space.service.validator.NullValidator;
@@ -23,9 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static com.space.exception.InvalidShipFieldsException.message;
 import static com.space.model.ShipSpecification.*;
 import static org.springframework.data.jpa.domain.Specification.where;
 
@@ -33,11 +32,9 @@ import static org.springframework.data.jpa.domain.Specification.where;
 @RequestMapping("/rest")
 public class ShipController {
 
-    private static final String NOT_FOUND_BY_ID_MESSAGE =
-            "Ship doesn't exist with ID: ";
+    private static final String NOT_FOUND_BY_ID_MESSAGE = "Ship doesn't exist with ID: ";
 
-    private static final String INVALID_ID_MESSAGE =
-            "Invalid ship ID: ";
+    private static final String INVALID_ID_MESSAGE = "Invalid ship ID: ";
 
     private static Logger log = Logger.getLogger(ShipController.class);
 
@@ -51,13 +48,11 @@ public class ShipController {
 
     @Autowired
     public ShipController(ShipService shipService, ShipValidator shipValidator,
-                          NullValidator nullValidator, ShipIdValidator shipIdValidator,
-                          ShipIdValidator shipExistValidator) {
+                          NullValidator nullValidator, ShipIdValidator shipIdValidator) {
         this.shipService = shipService;
         this.shipValidator = shipValidator;
         this.nullValidator = nullValidator;
         this.shipIdValidator = shipIdValidator;
-        this.shipIdValidator = shipExistValidator;
     }
 
     @GetMapping("/ships")
@@ -78,9 +73,9 @@ public class ShipController {
             @RequestParam(name = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(name = "pageSize", required = false, defaultValue = "3") Integer pageSize ) {
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()));
+        Pageable pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()));
 
-        Page<Ship> ships = shipService.findAll(
+        Page<Ship> shipsPage = shipService.findAll(
                 where(
                         shipsLikeName(name)
                                 .and(shipsLikePlanet(planet))
@@ -95,9 +90,9 @@ public class ShipController {
                                 .and(shipsGreaterThanOrEqualToRating(minRating))
                                 .and(shipsLessThanOrEqualToRating(maxRating))
                 ),
-                pageable);
+                pageRequest);
 
-        return new ResponseEntity<>(ships.getContent(), HttpStatus.OK);
+        return new ResponseEntity<>(shipsPage.getContent(), HttpStatus.OK);
     }
 
     @GetMapping("/ships/count")
@@ -127,40 +122,35 @@ public class ShipController {
                         .and(shipsGreaterThanOrEqualToCrewSize(minCrewSize))
                         .and(shipsLessThanOrEqualToCrewSize(maxCrewSize))
                         .and(shipsGreaterThanOrEqualToRating(minRating))
-                        .and(shipsLessThanOrEqualToRating(maxRating))
-        );
+                        .and(shipsLessThanOrEqualToRating(maxRating)));
 
         return shipService.getShipsCount(shipSpecification);
     }
 
 
     @GetMapping("/ships/{id}")
-    public ResponseEntity<Ship> getShip(
-            @PathVariable Long id) {
+    public ResponseEntity<Ship> getShip(@PathVariable Long id) {
 
-        if (shipIdValidator.nonValid(id))
+        if (shipIdValidator.nonValid(id)) {
             throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
+        }
 
-        Optional<Ship> ship = shipService.getShipById(id);
+        Ship ship = shipService.getShipById(id).orElseThrow(
+                () -> new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id));
 
-        if (!ship.isPresent())
-            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
-
-        return new ResponseEntity<>(ship.get(), HttpStatus.OK);
+        return new ResponseEntity<>(ship, HttpStatus.OK);
     }
 
 
     @PostMapping("/ships")
-    public ResponseEntity<Ship> saveShip(@RequestBody Ship shipBody, BindingResult bindingResult) {
+    public ResponseEntity<Ship> saveShip(@RequestBody Ship shipBody, BindingResult errorsResolver) {
 
-        shipValidator.validate(shipBody, bindingResult);
-        nullValidator.validate(shipBody, bindingResult);
-
-        if (bindingResult.hasErrors())
-            throw new InvalidShipFieldsException(message(bindingResult));
-
+        shipValidator.validate(shipBody, errorsResolver);
+        nullValidator.validate(shipBody, errorsResolver);
+        if (errorsResolver.hasErrors()) {
+            throw new InvalidShipFieldException(errorsResolver);
+        }
         Ship ship = shipService.saveShip(shipBody);
-
         return new ResponseEntity<>(ship, HttpStatus.OK);
     }
 
@@ -168,38 +158,39 @@ public class ShipController {
     @DeleteMapping("/ships/{id}")
     public void deleteShip(@PathVariable  Long id) {
 
-        if (shipIdValidator.nonValid(id))
+        if (shipIdValidator.nonValid(id)) {
             throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
-
-        if (shipIdValidator.nonExists(id))
+        }
+        if (shipIdValidator.nonExists(id)) {
             throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
+        }
 
         shipService.deleteShip(id);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/ships/{id}")
-    public ResponseEntity<Ship> updateShip(
-            @PathVariable Long id,
-            @RequestBody Ship shipBody, BindingResult bindingResult) {
+    public ResponseEntity<Ship> updateShip(@PathVariable Long id, @RequestBody Ship shipBody,
+                                           BindingResult errorsResolver) {
 
-        if (shipIdValidator.nonValid(id))
+        if (shipIdValidator.nonValid(id)) {
             throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
+        }
 
-        shipValidator.validate(shipBody, bindingResult);
+        shipValidator.validate(shipBody, errorsResolver);
 
-        if (bindingResult.hasErrors())
-            throw new InvalidShipFieldsException(message(bindingResult));
+        if (errorsResolver.hasErrors()) {
+            throw new InvalidShipFieldException(errorsResolver);
+        }
 
-        Optional<Ship> ship = shipService.updateShip(id, shipBody);
+        Ship ship = shipService.updateShip(id, shipBody).orElseThrow(
+                () -> new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id));
 
-        if (!ship.isPresent())
-            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
 
-        return new ResponseEntity<>(ship.get(), HttpStatus.OK);
+        return new ResponseEntity<>(ship, HttpStatus.OK);
     }
 
-    @ExceptionHandler({InvalidShipIdException.class, InvalidShipFieldsException.class})
+    @ExceptionHandler({InvalidShipIdException.class, InvalidShipFieldException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> badRequest (Exception e) {
         return Map.of("message", e.getMessage(),
