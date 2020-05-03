@@ -17,7 +17,7 @@ public interface ShipService {
 
     void deleteShip(Long id);
 
-    Boolean existById(Long id);
+    Boolean existsById(Long id);
 
     Page<Ship> findAll(Specification<Ship> specification, Pageable pageable);
 

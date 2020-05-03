@@ -18,27 +18,33 @@ public class NullValidator implements Validator {
     }
 
     @Override
-    public void validate(Object o, Errors errors) {
+    public void validate(Object o, Errors errorsResolver) {
 
         Ship s = (Ship) o;
 
-        if (isNull(s.getName()))
-            errors.reject("name", message("name"));
+        if (isNull(s.getName())) {
+            errorsResolver.reject("name", message("name"));
+        }
 
-        if (isNull(s.getPlanet()))
-            errors.reject("planet", message("planet"));
+        if (isNull(s.getPlanet())) {
+            errorsResolver.reject("planet", message("planet"));
+        }
 
-        if (isNull(s.getShipType()))
-            errors.reject("shipType", message("shipType"));
+        if (isNull(s.getShipType())) {
+            errorsResolver.reject("shipType", message("shipType"));
+        }
 
-        if (isNull(s.getProdDate()))
-            errors.reject("prodDate", message("prodDate"));
+        if (isNull(s.getProdDate())) {
+            errorsResolver.reject("prodDate", message("prodDate"));
+        }
 
-        if (isNull(s.getSpeed()))
-            errors.reject("speed", message("speed"));
+        if (isNull(s.getSpeed())) {
+            errorsResolver.reject("speed", message("speed"));
+        }
 
-        if (isNull(s.getCrewSize()))
-            errors.reject("crewSize", message("crewSize"));
+        if (isNull(s.getCrewSize())) {
+            errorsResolver.reject("crewSize", message("crewSize"));
+        }
     }
 
     private static String message(String fieldName) {

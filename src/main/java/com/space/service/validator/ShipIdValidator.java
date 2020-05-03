@@ -11,16 +11,18 @@ public class ShipIdValidator {
 
     private ShipService shipService;
 
+    private static final Integer MIN_ID_VALUE = 0;
+
     @Autowired
     public ShipIdValidator(ShipService shipService) {
         this.shipService = shipService;
     }
 
     public boolean nonExists(Long id) {
-        return isNull(id) || !shipService.existById(id);
+        return isNull(id) || !shipService.existsById(id);
     }
 
     public boolean nonValid(Long id) {
-        return isNull(id) || String.valueOf(id).contains(".") || id <= 0;
+        return isNull(id) || id <= MIN_ID_VALUE;
     }
 }

@@ -27,27 +27,18 @@ public class ShipServiceImpl implements ShipService {
 
     @Override
     public Ship saveShip(Ship ship) {
-
         ship.setDefaultUsed();
         ship.calculateRating();
-
         return shipRepository.save(ship);
     }
 
     @Override
     public Optional<Ship> updateShip(Long id, Ship ship) {
-
-        Optional<Ship> optionalShip = shipRepository.findById(id);
-
-        if (!optionalShip.isPresent()) return Optional.empty();
-
-        Ship s = optionalShip.get();
-
-        s.updateFields(ship);
-        s.calculateRating();
-        shipRepository.save(s);
-
-        return Optional.of(s);
+        return getShipById(id).stream()
+                .peek(s -> s.update(ship))
+                .peek(Ship::calculateRating)
+                .peek(this::saveShip)
+                .findFirst();
     }
 
     @Override
@@ -56,13 +47,13 @@ public class ShipServiceImpl implements ShipService {
     }
 
     @Override
-    public Boolean existById(Long id) {
+    public Boolean existsById(Long id) {
         return shipRepository.existsById(id);
     }
 
     @Override
-    public Page<Ship> findAll(Specification<Ship> specification, Pageable pageable) {
-        return shipRepository.findAll(specification, pageable);
+    public Page<Ship> findAll(Specification<Ship> specification, Pageable pageRequest) {
+        return shipRepository.findAll(specification, pageRequest);
     }
 
     @Override

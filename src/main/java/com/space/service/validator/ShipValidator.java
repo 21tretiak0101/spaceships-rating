@@ -13,13 +13,13 @@ import static java.util.Objects.isNull;
 @Service
 public class ShipValidator implements Validator {
 
-    private static final int MIN_SYMBOLS_VALUE = 0;
-
-    private static final int MAX_SYMBOLS_VALUE = 50;
+    public static final int MAX_PROD_YEAR = 3019;
 
     private static final int MIN_PROD_YEAR = 2800;
 
-    private static final int MAX_PROD_YEAR = 3019;
+    private static final int MIN_SYMBOLS_VALUE = 0;
+
+    private static final int MAX_SYMBOLS_VALUE = 50;
 
     private static final int MIN_CREW_SIZE = 1;
 
@@ -37,23 +37,28 @@ public class ShipValidator implements Validator {
     }
 
     @Override
-    public void validate(Object o, Errors errors) {
-        Ship s = (Ship) o;
+    public void validate(Object object, Errors errorsResolver) {
+        Ship s = (Ship) object;
 
-        if (nonValidName(s.getName()))
-            errors.reject("name", message("name"));
+        if (nonValidName(s.getName())) {
+            errorsResolver.reject("name", message("name"));
+        }
 
-        if (nonValidPlanet(s.getPlanet()))
-            errors.reject("planet", message("planet"));
+        if (nonValidPlanet(s.getPlanet())) {
+            errorsResolver.reject("planet", message("planet"));
+        }
 
-        if (nonValidCrewSize(s.getCrewSize()))
-            errors.reject("crewSize", message("crewSize"));
+        if (nonValidCrewSize(s.getCrewSize())) {
+            errorsResolver.reject("crewSize", message("crewSize"));
+        }
 
-        if (nonValidProdYear(s.getProdDate()))
-            errors.reject("prodYear", message("prodYear"));
+        if (nonValidProdYear(s.getProdDate())) {
+            errorsResolver.reject("prodYear", message("prodYear"));
+        }
 
-        if (nonValidSpeed(s.getSpeed()))
-            errors.reject("speed", message("speed"));
+        if (nonValidSpeed(s.getSpeed())) {
+            errorsResolver.reject("speed", message("speed"));
+        }
     }
 
 
