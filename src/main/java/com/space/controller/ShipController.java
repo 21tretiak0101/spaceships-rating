@@ -203,9 +203,9 @@ public class ShipController {
     }
 
     public Map<String, String> exception(Exception e) {
-        return new HashMap<>(){{
-            put("message", e.getMessage());
-            put("error", e.getClass().getSimpleName());
-        }};
+        HashMap<String, String> exceptions = new HashMap<>();
+        exceptions.put("message", e.getMessage());
+        exceptions.put("error", e.getClass().getSimpleName());
+        return exceptions;
     }
 }

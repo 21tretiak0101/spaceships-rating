@@ -34,11 +34,15 @@ public class ShipServiceImpl implements ShipService {
 
     @Override
     public Optional<Ship> updateShip(Long id, Ship ship) {
-        return getShipById(id).stream()
-                .peek(s -> s.update(ship))
-                .peek(s -> s.calculateRating())
-                .peek(this::saveShip)
-                .findFirst();
+        Optional<Ship> optionalShip = getShipById(id);
+        if (!optionalShip.isPresent()) {
+            return Optional.empty();
+        }
+        Ship s = optionalShip.get();
+        s.update(ship);
+        s.calculateRating();
+        shipRepository.save(s);
+        return Optional.of(s);
     }
 
     @Override
