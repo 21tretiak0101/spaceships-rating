@@ -133,7 +133,7 @@ public class Ship {
                 '}';
     }
 
-    public void calculateRating() {
+    public  void calculateRating() {
         int currentYear = ShipValidator.MAX_PROD_YEAR;
 
         Calendar prodDate = Calendar.getInstance();

@@ -2,7 +2,7 @@ package com.space.controller;
 
 import com.space.exception.InvalidShipFieldException;
 import com.space.exception.InvalidShipIdException;
-import com.space.exception.ShipExistException;
+import com.space.exception.ShipNotFoundException;
 import com.space.model.Ship;
 import com.space.model.ShipOrder;
 import com.space.model.ShipType;
@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -136,7 +137,7 @@ public class ShipController {
         }
 
         Ship ship = shipService.getShipById(id).orElseThrow(
-                () -> new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id));
+                () -> new ShipNotFoundException(NOT_FOUND_BY_ID_MESSAGE + id));
 
         return new ResponseEntity<>(ship, HttpStatus.OK);
     }
@@ -162,7 +163,7 @@ public class ShipController {
             throw new InvalidShipIdException(INVALID_ID_MESSAGE + id);
         }
         if (shipIdValidator.nonExists(id)) {
-            throw new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id);
+            throw new ShipNotFoundException(NOT_FOUND_BY_ID_MESSAGE + id);
         }
 
         shipService.deleteShip(id);
@@ -184,8 +185,7 @@ public class ShipController {
         }
 
         Ship ship = shipService.updateShip(id, shipBody).orElseThrow(
-                () -> new ShipExistException(NOT_FOUND_BY_ID_MESSAGE + id));
-
+                () -> new ShipNotFoundException(NOT_FOUND_BY_ID_MESSAGE + id));
 
         return new ResponseEntity<>(ship, HttpStatus.OK);
     }
@@ -193,14 +193,19 @@ public class ShipController {
     @ExceptionHandler({InvalidShipIdException.class, InvalidShipFieldException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> badRequest (Exception e) {
-        return Map.of("message", e.getMessage(),
-                "error", e.getClass().getSimpleName());
+       return exception(e);
     }
 
-    @ExceptionHandler(ShipExistException.class)
+    @ExceptionHandler(ShipNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> notFound (Exception e) {
-        return Map.of("message", e.getMessage(),
-                "error", e.getClass().getSimpleName());
+        return exception(e);
+    }
+
+    public Map<String, String> exception(Exception e) {
+        return new HashMap<>(){{
+            put("message", e.getMessage());
+            put("error", e.getClass().getSimpleName());
+        }};
     }
 }

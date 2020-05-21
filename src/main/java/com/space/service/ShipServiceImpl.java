@@ -36,7 +36,7 @@ public class ShipServiceImpl implements ShipService {
     public Optional<Ship> updateShip(Long id, Ship ship) {
         return getShipById(id).stream()
                 .peek(s -> s.update(ship))
-                .peek(Ship::calculateRating)
+                .peek(s -> s.calculateRating())
                 .peek(this::saveShip)
                 .findFirst();
     }
