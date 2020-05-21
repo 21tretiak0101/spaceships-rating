@@ -1,11 +1,11 @@
-package com.space.configuration;
+package com.space.config;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+public class MyWebAppInit extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
@@ -15,12 +15,12 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[]{AppConfiguration.class};
+        return new Class[]{AppConfig.class};
     }
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        return new Class[]{WebConfiguration.class};
+        return new Class[]{WebConfig.class};
     }
 
     @Override

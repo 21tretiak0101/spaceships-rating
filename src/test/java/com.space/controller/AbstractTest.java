@@ -1,8 +1,8 @@
 package com.space.controller;
 
-import com.space.configuration.AppConfiguration;
-import com.space.configuration.WebAppInitializer;
-import com.space.configuration.WebConfiguration;
+import com.space.config.AppConfig;
+import com.space.config.MyWebAppInit;
+import com.space.config.WebConfig;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("dev")
-@ContextConfiguration(classes = {AppConfiguration.class, WebAppInitializer.class, WebConfiguration.class})
+@ContextConfiguration(classes = {AppConfig.class, MyWebAppInit.class, WebConfig.class})
 @WebAppConfiguration
 @Sql(scripts = "classpath:test.sql", config = @SqlConfig(encoding = "UTF-8"))
 public abstract class AbstractTest {

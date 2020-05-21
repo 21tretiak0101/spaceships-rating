@@ -1,4 +1,4 @@
-package com.space.configuration;
+package com.space.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -20,7 +20,7 @@ import java.util.List;
 @Configuration
 @EnableWebMvc
 @ComponentScan("com.space.controller")
-public class WebConfiguration implements WebMvcConfigurer {
+public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     public ViewResolver internalResourceViewResolver() {

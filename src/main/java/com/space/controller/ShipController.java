@@ -4,7 +4,6 @@ import com.space.exception.InvalidShipFieldException;
 import com.space.exception.InvalidShipIdException;
 import com.space.exception.ShipNotFoundException;
 import com.space.model.Ship;
-import com.space.model.ShipOrder;
 import com.space.model.ShipType;
 import com.space.service.ShipService;
 import com.space.service.validator.NullValidator;
