@@ -4,12 +4,12 @@ import com.space.exception.InvalidShipFieldException;
 import com.space.exception.InvalidShipIdException;
 import com.space.exception.ShipNotFoundException;
 import com.space.model.Ship;
+import com.space.model.ShipOrder;
 import com.space.model.ShipType;
 import com.space.service.ShipService;
 import com.space.service.validator.NullValidator;
 import com.space.service.validator.ShipIdValidator;
 import com.space.service.validator.ShipValidator;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,8 +35,6 @@ public class ShipController {
     private static final String NOT_FOUND_BY_ID_MESSAGE = "Ship doesn't exist with ID: ";
 
     private static final String INVALID_ID_MESSAGE = "Invalid ship ID: ";
-
-    private static Logger log = Logger.getLogger(ShipController.class);
 
     private ShipService shipService;
 

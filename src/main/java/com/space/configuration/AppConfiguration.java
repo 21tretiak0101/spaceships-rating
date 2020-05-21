@@ -1,4 +1,4 @@
-package com.space.config;
+package com.space.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,7 +25,7 @@ import static org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType.
 @EnableTransactionManagement
 @ComponentScan("com.space")
 @EnableJpaRepositories(basePackages = "com.space.repository")
-public class AppConfig {
+public class AppConfiguration {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {

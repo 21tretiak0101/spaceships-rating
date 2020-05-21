@@ -1,4 +1,4 @@
-package com.space.controller;
+package com.space.model;
 
 public enum ShipOrder {
     ID("id"), // default
